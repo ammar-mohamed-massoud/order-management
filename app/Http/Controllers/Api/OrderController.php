@@ -142,7 +142,6 @@ class OrderController extends Controller
             $unitPrice = number_format((float) $item['unit_price'], 2, '.', '');
             $totalCents += (int) str_replace('.', '', $unitPrice) * (int) $item['quantity'];
             $rows[] = [
-                'product_id' => $item['product_id'],
                 'product_name' => $item['product_name'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $unitPrice,
