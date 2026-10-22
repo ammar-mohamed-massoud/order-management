@@ -1,0 +1,239 @@
+{
+  "info": {
+    "_postman_id": "50f44e3c-803f-4ed8-8070-6e10dbcc7a30",
+    "name": "Order and Payment Management API",
+    "description": "Laravel JSON API. Register/login to obtain a JWT, then set the token collection variable for protected requests. Simulated gateway payments only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "orderId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sam Example\",\n  \"email\": \"sam@example.com\",\n  \"password\": \"correct-horse-battery\",\n  \"password_confirmation\": \"correct-horse-battery\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          },
+          "response": [
+            {
+              "name": "Created",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/auth/register" },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"token_type\": \"Bearer\",\n  \"access_token\": \"<signed-jwt>\",\n  \"expires_in\": 3600,\n  \"user\": { \"id\": 1, \"name\": \"Sam Example\", \"email\": \"sam@example.com\" }\n}"
+            },
+            {
+              "name": "Validation error",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/auth/register" },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The email field is required.\",\n  \"errors\": { \"email\": [\"The email field is required.\"] }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sam@example.com\",\n  \"password\": \"correct-horse-battery\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "response": [
+            {
+              "name": "Invalid credentials",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/auth/login" },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The provided credentials are incorrect.\",\n  \"errors\": { \"email\": [\"The provided credentials are incorrect.\"] }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/orders?status=pending&per_page=15"
+          }
+        },
+        {
+          "name": "Create order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Sam Example\",\n  \"customer_email\": \"sam@example.com\",\n  \"items\": [\n    { \"product_name\": \"Notebook\", \"quantity\": 2, \"unit_price\": \"12.50\" },\n    { \"product_name\": \"Pen\", \"quantity\": 3, \"unit_price\": \"1.20\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          },
+          "response": [
+            {
+              "name": "Created",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/orders" },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"status\": \"pending\",\n    \"total_amount\": \"28.60\",\n    \"items\": [\n      { \"product_name\": \"Notebook\", \"quantity\": 2, \"unit_price\": \"12.50\" },\n      { \"product_name\": \"Pen\", \"quantity\": 3, \"unit_price\": \"1.20\" }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get order",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Confirm order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"status\": \"confirmed\" }" },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Update order and replace items",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Sam Example\",\n  \"items\": [{ \"product_name\": \"Updated item\", \"quantity\": 1, \"unit_price\": \"8.25\" }]\n}"
+            },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Delete order",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          },
+          "response": [
+            {
+              "name": "Conflict when payments exist",
+              "originalRequest": { "method": "DELETE", "url": "{{baseUrl}}/api/orders/{{orderId}}" },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{ \"message\": \"Orders with associated payments cannot be deleted.\" }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "List payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/payments?order_id={{orderId}}&per_page=15"
+          }
+        },
+        {
+          "name": "Process payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": {{orderId}},\n  \"payment_method\": \"credit_card\"\n}"
+            },
+            "url": "{{baseUrl}}/api/payments"
+          },
+          "response": [
+            {
+              "name": "Successful simulated payment",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/payments" },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"order_id\": 1,\n    \"payment_method\": \"credit_card\",\n    \"status\": \"successful\",\n    \"amount\": \"28.60\",\n    \"transaction_reference\": \"cc_<generated-uuid>\"\n  }\n}"
+            },
+            {
+              "name": "Order not confirmed",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/payments" },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{ \"message\": \"Payments can only be processed for confirmed orders.\" }"
+            },
+            {
+              "name": "Unsupported method",
+              "originalRequest": { "method": "POST", "url": "{{baseUrl}}/api/payments" },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The selected payment method is not supported.\",\n  \"errors\": { \"payment_method\": [\"The selected payment method is not supported.\"] }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
